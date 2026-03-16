@@ -1,0 +1,20 @@
+# Use per-service requirements; this file is a convenience
+fastapi
+uvicorn
+pdfplumber
+pymupdf
+camelot-py[cv]
+pytesseract
+pdf2image
+pandas
+python-multipart
+requests
+pydantic
+jsonschema
+streamlit
+faiss-cpu
+python-dotenv
+langchain
+langchain-openai
+tiktoken
+pytest

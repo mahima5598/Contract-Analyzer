@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+env/
+venv/
+.env
+*.sqlite3
+
+# Byte-compiled / distribution
+build/
+dist/
+*.egg-info/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Data / artifacts
+extracted/
+uploads/
+*.db
+*.sqlite
+
+# Streamlit
+.streamlit/
+
+# Docker
+docker-compose.override.yml
