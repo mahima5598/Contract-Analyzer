@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - uploads:/app/uploads
+      - extracted:/app/extracted
+    working_dir: /app
+    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+
+  frontend:
+    image: python:3.10-slim
+    env_file:
+      - .env
+    volumes:
+      - ./frontend:/app
+      - uploads:/app/uploads:ro
+    working_dir: /app
+    command: streamlit run streamlit_app/app.py --server.port 8501 --server.headless true
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+
+volumes:
+  uploads:
+  extracted:
