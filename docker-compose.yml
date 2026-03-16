@@ -4,30 +4,64 @@ services:
   backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile
+    container_name: contract-analyzer-backend
     ports:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      - PYTHONUNBUFFERED=1
     volumes:
       - uploads:/app/uploads
       - extracted:/app/extracted
-    working_dir: /app
-    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+    networks:
+      - contract-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
 
   frontend:
-    image: python:3.10-slim
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: contract-analyzer-frontend
+    ports:
+      - "8501:8501"
     env_file:
       - .env
+    environment:
+      - PYTHONUNBUFFERED=1
     volumes:
       - ./frontend:/app
       - uploads:/app/uploads:ro
-    working_dir: /app
-    command: streamlit run streamlit_app/app.py --server.port 8501 --server.headless true
-    ports:
-      - "8501:8501"
+    networks:
+      - contract-network
+    depends_on:
+      backend:
+        condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
 
 volumes:
   uploads:
   extracted:
+
+networks:
+  contract-network:
+    driver: bridge
