@@ -23,7 +23,6 @@ class PDFExtractor:
             {
                 "pages":       [{"page_number": int, "text": str}, ...],
                 "tables":      [{"page_number": int, "markdown": str}, ...],
-                "images_text": [],
                 "page_count":  int,
             }
         """
@@ -62,7 +61,6 @@ class PDFExtractor:
         return {
             "pages": pages,
             "tables": tables,
-            "images_text": [],
             "page_count": len(pages),
         }
     # ── Helper: dict → single string (called by main.py) ─────────────────

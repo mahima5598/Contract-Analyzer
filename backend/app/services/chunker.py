@@ -44,7 +44,6 @@ class DocumentChunker:
     Handles three content types separately:
     - Page text (main body)
     - Tables (converted to markdown)
-    - OCR'd image text
     """
 
     def __init__(
@@ -96,10 +95,6 @@ class DocumentChunker:
         # 2. Chunk tables (kept larger for structural integrity)
         all_chunks.extend(self._chunk_tables(extraction_result.get("tables", [])))
 
-        # 3. Chunk OCR text from images
-        all_chunks.extend(
-            self._chunk_images(extraction_result.get("images_text", []))
-        )
 
         return all_chunks
 
@@ -162,36 +157,6 @@ class DocumentChunker:
 
         return chunks
 
-    def _chunk_images(self, images: List[Dict]) -> List[Chunk]:
-        """
-        Split OCR-extracted image text into chunks.
-
-        Image text is prefixed so the LLM knows this came from
-        an embedded image (possibly an exhibit or diagram).
-        """
-        chunks = []
-
-        for image in images:
-            text = image.get("extracted_text", "").strip()
-            if not text or len(text) < 20:  # Skip very short OCR noise
-                continue
-
-            page_number = image.get("page_number", 0)
-            prefixed = f"[IMAGE/EXHIBIT on Page {page_number}]\n{text}"
-
-            splits = self.text_splitter.split_text(prefixed)
-
-            for i, split_text in enumerate(splits):
-                chunks.append(Chunk(
-                    content=split_text,
-                    metadata={
-                        "page_number": page_number,
-                        "source_type": "image_ocr",
-                        "chunk_index": i,
-                    },
-                ))
-
-        return chunks
 
     def get_texts_and_metadatas(
         self, chunks: List[Chunk]
