@@ -1,53 +1,39 @@
-# Core HTTP / compatibility
-requests==2.31.0
-urllib3==1.26.16
-charset_normalizer==3.1.0
-chardet==5.1.0
-pydantic==2.5.0
+# Core
+numpy>=2.0
+pandas>=2.3
+requests>=2.31
 
 # FastAPI + server
-fastapi==0.95.2
-uvicorn==0.22.0
-python-multipart==0.0.6
+fastapi
+uvicorn>=0.22
+python-multipart
 
-# Ingestion / PDF / OCR / images
-pdfplumber==0.9.0
-camelot-py==1.0.9
-pytesseract==0.3.10
-pdf2image==1.16.3
-pillow==12.1.1
-opencv-python-headless==4.13.0.92
+# PDF / OCR
+pdfplumber>=0.10.0
+# camelot-py (optional)
+pytesseract
+pdf2image
+pillow
 
-# Data processing
-pandas==2.3.3
-numpy==2.4.3
-
-# Retrieval / embeddings / FAISS
-sentence-transformers==2.2.2
-faiss-cpu==1.13.2
-tiktoken==0.4.0
+# Retrieval / embeddings
+sentence-transformers
+faiss-cpu
+tiktoken>=0.5.2,<0.6.0
 
 # LLM orchestration & validation
-requests-toolbelt==1.0.0
-jsonschema==4.19.0
+requests-toolbelt
+jsonschema
 
 # LLM & RAG
-langchain==0.1.0
-langchain-openai==0.0.5
+langchain>=0.1.1
+langchain-openai>=0.0.5
 
 # Background worker
-celery==5.6.2
-redis==5.0.10
+celery
+redis>=5,<6
 
-# Dev / tooling / testing
-pytest==7.4.2
-pipdeptree==2.31.0
-
-# Testing
-pytest==7.4.3
+# Dev / tooling
+pipdeptree
 
 # Utilities
-python-dotenv==1.0.0
-
-# Frontend
-streamlit==1.26.0
+python-dotenv
