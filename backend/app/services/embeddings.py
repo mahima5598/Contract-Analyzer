@@ -21,9 +21,9 @@ Design decisions:
    Marginal Relevance) to reduce redundant chunk retrieval.
 """
 from typing import List, Dict, Any, Optional
-from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain import Document
+from langchain_core.documents import Document
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from backend.app.services.chunker import Chunk, DocumentChunker
 from backend.app.config import settings
 
@@ -36,7 +36,7 @@ class EmbeddingService:
         model_name: Optional[str] = None,
     ):
         self.model_name = model_name or settings.embedding_model
-        self.embeddings = OpenAIEmbeddings(model=self.model_name)
+        self.embeddings = GoogleGenerativeAIEmbeddings(model=self.model_name)
         self.vectorstore: Optional[FAISS] = None
         self.chunker = DocumentChunker(
             chunk_size=settings.chunk_size,

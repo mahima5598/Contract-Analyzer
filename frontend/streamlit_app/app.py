@@ -5,6 +5,9 @@ from components.upload import render_upload_widget, render_document_info
 from components.results_display import render_results
 from components.chat_widget import render_chat_widget
 from utils import get_api_base, check_backend_health, run_analysis
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # ── Page Configuration ──
 st.set_page_config(

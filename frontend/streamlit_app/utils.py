@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any
 
 def get_api_base() -> str:
     """Get the backend API base URL from environment or default."""
-    return os.getenv("API_BASE_URL", "http://localhost:8000")
+    return os.getenv("API_BASE", "http://localhost:8000")
 
 
 def check_backend_health(api_base: str) -> bool:

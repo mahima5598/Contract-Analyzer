@@ -23,7 +23,7 @@ Design decisions:
 """
 from typing import List, Dict, Optional
 from langchain_openai import ChatOpenAI
-from langchain import HumanMessage, SystemMessage, AIMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from backend.app.services.embeddings import EmbeddingService
 from backend.app.config import settings
 

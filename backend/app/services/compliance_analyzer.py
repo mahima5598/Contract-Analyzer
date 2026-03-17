@@ -3,11 +3,10 @@ import json
 from datetime import datetime, timezone
 from typing import List, Dict
 
-# Switch to Google Generative AI and Community FAISS
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_classic.chains import RetrievalQA
+from langchain.chains import RetrievalQA                        # ← FIXED
 from langchain_core.prompts import PromptTemplate
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -18,23 +17,18 @@ from backend.app.prompts.compliance_prompts import (
     COMPLIANCE_QUESTIONS, build_compliance_prompt
 )
 
+
 class ComplianceAnalyzer:
     def __init__(self, model_name: str = "gemini-1.5-flash", temperature: float = 0.1):
         self.model_name = model_name
-        
-        # 1. Use Gemini 1.5 Flash (Free Tier)
         self.llm = ChatGoogleGenerativeAI(
             model=model_name,
             google_api_key=os.getenv("GOOGLE_API_KEY"),
-            temperature=temperature
+            temperature=temperature,
         )
-        
-        # 2. Use Local HuggingFace Embeddings (Free & Unlimited)
-        # 'all-MiniLM-L6-v2' is lightweight and excellent for contract text
         self.embeddings = HuggingFaceEmbeddings(
             model_name="sentence-transformers/all-MiniLM-L6-v2"
         )
-        
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1500,
             chunk_overlap=200,
@@ -43,18 +37,14 @@ class ComplianceAnalyzer:
         self.vectorstore = None
 
     def build_index(self, full_text: str) -> None:
-        """Chunk the document and build a FAISS vector index using free embeddings."""
         chunks = self.text_splitter.split_text(full_text)
-        # This now runs locally on your machine
         self.vectorstore = FAISS.from_texts(chunks, self.embeddings)
 
     def analyze_compliance(self, contract_name: str) -> ComplianceReport:
-        """Run all 5 compliance questions against the indexed document."""
         if not self.vectorstore:
             raise ValueError("Must call build_index() before analysis")
 
         results: List[ComplianceResult] = []
-
         for question_id, question_data in COMPLIANCE_QUESTIONS.items():
             result = self._evaluate_single_question(question_id, question_data)
             results.append(result)
@@ -66,18 +56,11 @@ class ComplianceAnalyzer:
             model_used=self.model_name,
         )
 
-    def _evaluate_single_question(
-        self, question_id: str, question_data: Dict
-    ) -> ComplianceResult:
-        """Evaluate a single compliance question using RAG retrieval."""
+    def _evaluate_single_question(self, question_id: str, question_data: Dict) -> ComplianceResult:
         retriever = self.vectorstore.as_retriever(
-            search_type="similarity",
-            search_kwargs={"k": 8},
+            search_type="similarity", search_kwargs={"k": 8},
         )
-
         prompt = build_compliance_prompt(question_data)
-
-        # Updated to standard RetrievalQA syntax
         chain = RetrievalQA.from_chain_type(
             llm=self.llm,
             chain_type="stuff",
@@ -85,24 +68,13 @@ class ComplianceAnalyzer:
             return_source_documents=True,
             chain_type_kwargs={"prompt": prompt},
         )
-
         response = chain.invoke({"query": question_data["question"]})
-        
-        # Handle different response formats between OpenAI and Google providers
-        result_text = response["result"]
-        parsed = self._parse_llm_response(result_text, question_data)
+        return self._parse_llm_response(response["result"], question_data)
 
-        return parsed
-
-    def _parse_llm_response(
-        self, response_text: str, question_data: Dict
-    ) -> ComplianceResult:
-        """Parse the structured JSON response from Gemini."""
+    def _parse_llm_response(self, response_text: str, question_data: Dict) -> ComplianceResult:
         try:
-            # Gemini sometimes wraps JSON in markdown blocks ```json ... ```
             clean_json = response_text.replace("```json", "").replace("```", "").strip()
             data = json.loads(clean_json)
-            
             return ComplianceResult(
                 compliance_question=question_data["title"],
                 compliance_state=ComplianceState(data["compliance_state"]),
@@ -120,7 +92,6 @@ class ComplianceAnalyzer:
             )
 
     def chat(self, query: str, chat_history: list = None) -> Dict:
-        """Bonus: chat over the document content using Gemini."""
         if not self.vectorstore:
             raise ValueError("Must call build_index() before chatting")
 
@@ -133,12 +104,9 @@ class ComplianceAnalyzer:
             "on the provided contract content. Always cite specific sections "
             "or quotes. If the information is not in the contract, say so clearly."
         )
-        
         user_input = f"Contract context:\n{context}\n\nQuestion: {query}"
-        
-        # Gemini uses the standard invoke format
         response = self.llm.invoke(f"{system_instruction}\n\n{user_input}")
-        
+
         return {
             "answer": response.content,
             "source_quotes": [doc.page_content[:200] for doc in docs[:3]],

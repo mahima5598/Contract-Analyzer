@@ -15,7 +15,8 @@ class Settings(BaseSettings):
 
     google_api_key: str = os.getenv("GOOGLE_API_KEY", "")
     model_name: str = "gemini-1.5-flash"
-    embedding_model: str = "text-embedding-3-small"
+    embedding_model: str = "models/text-embedding-004",
+    google_api_key=os.getenv("GOOGLE_API_KEY"),
     chunk_size: int = 1500
     chunk_overlap: int = 200
     retrieval_k: int = 8

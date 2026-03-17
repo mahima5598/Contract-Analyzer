@@ -1,23 +1,22 @@
 # Core
-numpy>=2.0
-pandas>=2.3
+numpy>=1.24,<2.0
+pandas>=2.0
 requests>=2.31
+tabulate
 
 # FastAPI + server
 fastapi
 uvicorn>=0.22
 python-multipart
-camelot-py==0.11.0
-
+pydantic-settings
 
 # PDF / OCR
 pdfplumber>=0.10.0
-# camelot-py (optional)
+camelot-py==0.11.0
 pytesseract
 pdf2image
 pillow
 pymupdf==1.25.3
-
 
 # Retrieval / embeddings
 sentence-transformers
@@ -30,8 +29,9 @@ jsonschema
 
 # LLM & RAG
 langchain>=0.1.1
-faiss-cpu
+langchain-core
 langchain-community
+langchain-text-splitters
 langchain-google-genai
 
 # Dev / tooling
