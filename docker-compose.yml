@@ -1,67 +1,33 @@
-version: "3.9"
-
+version: "3.8"
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: contract-analyzer-backend
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
-    env_file:
-      - .env
     environment:
-      - PYTHONUNBUFFERED=1
-    volumes:
-      - uploads:/app/uploads
-      - extracted:/app/extracted
-    networks:
-      - contract-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '1'
-          memory: 1G
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: contract-analyzer-frontend
-    ports:
-      - "8501:8501"
-    env_file:
-      - .env
-    environment:
-      - PYTHONUNBUFFERED=1
-    volumes:
-      - ./frontend:/app
-      - uploads:/app/uploads:ro
-    networks:
-      - contract-network
+      - REDIS_URL=redis://redis:6379/0
+      - LOG_LEVEL=info
     depends_on:
-      backend:
-        condition: service_healthy
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
+      - redis
+    volumes:
+      - .:/app
 
-volumes:
-  uploads:
-  extracted:
-
-networks:
-  contract-network:
-    driver: bridge
+  worker:
+    build: .
+    command: >
+      celery -A backend.jobs.celery_app.celery_app worker
+      --loglevel=info --concurrency=2 --pool=threads
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - LOG_LEVEL=info
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
