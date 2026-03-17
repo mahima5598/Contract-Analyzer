@@ -2,7 +2,7 @@ import fitz  # PyMuPDF
 import pdfplumber
 import pandas as pd
 import camelot
-from pymupdf4llm import to_markdown
+import pymupdf4llm
 
 from pathlib import Path
 import os
@@ -10,22 +10,22 @@ import io
 from PIL import Image
 import pytesseract
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def extract_text_pymupdf4llm(pdf_path: str):
-    """
-    Extracts clean, LLM-friendly text using PyMuPDF4LLM.
-    Returns a list of dicts: [{page: 1, text: "..."}]
-    """
-    doc = fitz.open(pdf_path)
+    # to_markdown can read the whole file and split it into pages for you!
+    md_pages = pymupdf4llm.to_markdown(pdf_path, page_chunks=True)
+    
     pages = []
-
-    for i, page in enumerate(doc, start=1):
-        md = to_markdown(page)  # cleaner than raw text
-        pages.append({"page": i, "text": md})
-
+    for i, entry in enumerate(md_pages, start=1):
+        pages.append({
+            "page": i, 
+            "text": entry["text"]
+        })
     return pages
-
-
+    
 def extract_images(pdf_path: str, output_dir="extracted/images"):
     """
     Extracts embedded images and OCR text.
@@ -47,8 +47,11 @@ def extract_images(pdf_path: str, output_dir="extracted/images"):
                 f.write(image_bytes)
 
             # OCR
-            pil = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-            ocr_text = pytesseract.image_to_string(pil)
+            try:
+                pil = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+                ocr_text = pytesseract.image_to_string(pil)
+            except Exception:
+                ocr_text = ""
 
             images_meta.append({
                 "page": page_num,
@@ -61,43 +64,26 @@ def extract_images(pdf_path: str, output_dir="extracted/images"):
 
 
 def extract_tables(pdf_path: str, output_dir="extracted/tables"):
-    """
-    Extracts tables using Camelot (vector PDFs) and pdfplumber fallback.
-    Returns: [{table_id, page, csv, text}]
-    """
+    import pdfplumber
+    import pandas as pd
+    import os
+
     os.makedirs(output_dir, exist_ok=True)
     tables_meta = []
 
-    # Try Camelot first
-    try:
-        camelot_tables = camelot.read_pdf(pdf_path, pages="all", flavor="lattice")
-        for i, t in enumerate(camelot_tables):
-            csv_path = f"{output_dir}/camelot_table_{i+1}.csv"
-            t.to_csv(csv_path)
-
-            df = t.df
-            text_render = "\n".join([" | ".join(row) for row in df.values.tolist()])
-
-            tables_meta.append({
-                "table_id": f"camelot_{i+1}",
-                "page": t.page,
-                "csv": csv_path,
-                "text": text_render
-            })
-    except Exception:
-        pass
-
-    # Fallback: pdfplumber
     with pdfplumber.open(pdf_path) as pdf:
         for pnum, page in enumerate(pdf.pages, start=1):
             try:
                 page_tables = page.extract_tables()
                 for ti, tbl in enumerate(page_tables, start=1):
                     df = pd.DataFrame(tbl[1:], columns=tbl[0]) if len(tbl) > 1 else pd.DataFrame(tbl)
+
                     csv_path = f"{output_dir}/p{pnum}_t{ti}.csv"
                     df.to_csv(csv_path, index=False)
 
-                    text_render = "\n".join([" | ".join(map(str, row)) for row in df.values.tolist()])
+                    text_render = "\n".join(
+                        [" | ".join(map(str, row)) for row in df.values.tolist()]
+                    )
 
                     tables_meta.append({
                         "table_id": f"p{pnum}_t{ti}",
