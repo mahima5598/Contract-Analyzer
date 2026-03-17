@@ -25,8 +25,11 @@ requests-toolbelt
 jsonschema
 
 # LLM & RAG
-langchain>=0.1.1
-langchain-openai>=0.0.5
+langchain>=0.1.0,<1.0.0
+langchain-openai>=0.0.5,<1.0.0
+langchain-text-splitters
+langchain-core
+langchain-classic
 
 # Background worker
 celery
