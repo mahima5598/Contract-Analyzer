@@ -42,8 +42,42 @@ class ComplianceAnalyzer:
         self.vectorstore = None
 
     def build_index(self, full_text: str) -> None:
-        chunks = self.text_splitter.split_text(full_text)
+    # Anchor section/exhibit headers so they stay attached to their content.
+    # This prevents "Section 6.7" from being split into a separate chunk
+    # away from the text it governs — so the LLM can always cite the source.
+        anchored_text = self._anchor_section_headers(full_text)
+        chunks = self.text_splitter.split_text(anchored_text)
         self.vectorstore = FAISS.from_texts(chunks, self.embeddings)
+
+    def _anchor_section_headers(self, text: str) -> str:
+        """
+        Prevent section/exhibit headers from being separated from their content.
+        
+        Replaces the newline AFTER a header line with a space so the splitter
+        keeps the header glued to the first sentence of the section.
+        
+        Matches patterns like:
+        - "Section 6.7 Authentication..."
+        - "6.7 Authentication..."  
+        - "Exhibit G13"
+        - "Exhibit A"
+        - "SECTION 4 -"
+        """
+        import re
+        # Glue "Section X.Y Heading\n" → "Section X.Y Heading: "
+        # so it stays in the same chunk as its content
+        text = re.sub(
+            r'((?:Section|SECTION|Exhibit|EXHIBIT)\s[\d\w\.]+[^\n]*)\n',
+            r'\1 — ',
+            text
+        )
+        # Also glue bare numbered headers like "6.7 Title\n"
+        text = re.sub(
+            r'(\n\d+\.\d+[\s][^\n]{3,60})\n',
+            r'\1 — ',
+            text
+        )
+        return text
 
     def analyze_compliance(self, contract_name: str) -> ComplianceReport:
         if not self.vectorstore:

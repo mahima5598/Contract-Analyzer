@@ -97,14 +97,24 @@ def _render_single_result(question_num: int, result: Dict[str, Any]):
         st.info(result["rationale"])
 
         # Relevant quotes
+        import re
+
         st.markdown("#### 📖 Relevant Quotes from Contract")
         if result["relevant_quotes"]:
-            for j, quote in enumerate(result["relevant_quotes"], 1):
-                st.markdown(f"**Quote {j}:**")
-                st.markdown(f"> _{quote}_")
+            for quote in result["relevant_quotes"]:
+                # Try to extract [Section X.Y] or [Exhibit Z] prefix
+                match = re.match(r'^\[([^\]]+)\]\s*(.*)', quote, re.DOTALL)
+                if match:
+                    section_label = match.group(1)   # e.g. "Section 6.2" or "Exhibit G13"
+                    quote_text    = match.group(2)   # the actual quote text
+                else:
+                    section_label = "Contract Reference"
+                    quote_text    = quote            # no prefix found, show as-is
+
+                st.markdown(f"**📌 {section_label}:**")
+                st.markdown(f"> _{quote_text}_")
         else:
             st.warning("No relevant quotes were found for this requirement.")
-
 
 def _render_download(report: Dict[str, Any]):
     """Render a download button for the full JSON report."""

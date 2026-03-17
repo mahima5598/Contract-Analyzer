@@ -124,15 +124,18 @@ INSTRUCTIONS:
    - "Partially Compliant": SOME but not all criteria are addressed
    - "Non-Compliant": NONE or almost none of the criteria are addressed
 3. Provide your confidence as a percentage (0-100).
-4. Extract EXACT quotes from the contract that support your assessment.
+4. Extract EXACT quotes from the contract. Each quote MUST include the section or exhibit 
+   reference exactly as it appears in the document (e.g. "Section 6.2", "Exhibit G13", 
+   "Exhibit A"). Format each quote as: "[Section X.Y / Exhibit Z] <exact text from contract>"
 5. Explain your rationale, specifically noting which criteria are met and which are missing.
+   Reference section numbers and exhibit names where possible.
 
 You MUST respond with ONLY valid JSON in this exact format:
 {{
     "compliance_state": "Fully Compliant" | "Partially Compliant" | "Non-Compliant",
     "confidence": <number 0-100>,
-    "relevant_quotes": ["<exact quote 1>", "<exact quote 2>", ...],
-    "rationale": "<detailed explanation of which criteria are met/unmet>"
+    "relevant_quotes": ["[Section X.Y] <exact quote>", "[Exhibit Z] <exact quote>", ...],
+    "rationale": "<detailed explanation referencing specific sections/exhibits>"
 }}
 
 Respond with ONLY the JSON object, no additional text."""
