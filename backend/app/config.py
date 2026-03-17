@@ -1,6 +1,10 @@
 """Application configuration loaded from environment variables."""
 from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
 class Settings(BaseSettings):
@@ -9,8 +13,8 @@ class Settings(BaseSettings):
         env_file=".env",
     )
 
-    openai_api_key: str = ""
-    model_name: str = "gpt-4o"
+    google_api_key: str = os.getenv("GOOGLE_API_KEY", "")
+    model_name: str = "gemini-1.5-flash"
     embedding_model: str = "text-embedding-3-small"
     chunk_size: int = 1500
     chunk_overlap: int = 200

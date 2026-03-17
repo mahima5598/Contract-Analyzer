@@ -1,24 +1,41 @@
-# Core Framework
+# Core
+numpy>=2.0
+pandas>=2.3
+requests>=2.31
+
+# FastAPI + server
 fastapi
-uvicorn
+uvicorn>=0.22
 python-multipart
-pydantic>=2.0
+camelot-py==0.11.0
 
-# RAG & AI
-langchain
-langchain-openai
-langchain-community
-faiss-cpu
-openai
-tiktoken
 
-# PDF Processing
-pdfplumber
-pymupdf
-pdf2image
-python-magic
+# PDF / OCR
+pdfplumber>=0.10.0
+# camelot-py (optional)
 pytesseract
+pdf2image
+pillow
+pymupdf==1.25.3
+
+
+# Retrieval / embeddings
+sentence-transformers
+faiss-cpu
+tiktoken>=0.5.2,<0.6.0
+
+# LLM orchestration & validation
+requests-toolbelt
+jsonschema
+
+# LLM & RAG
+langchain>=0.1.1
+faiss-cpu
+langchain-community
+langchain-google-genai
+
+# Dev / tooling
+pipdeptree
 
 # Utilities
 python-dotenv
-httpx
