@@ -76,7 +76,12 @@ def _upload_file(uploaded_file, api_base: str) -> Optional[Dict]:
         progress_bar.progress(60, text="Extracting text, tables, and images...")
 
         if response.status_code != 200:
-            st.error(f"❌ Upload failed: {response.json().get('detail', response.text)}")
+            try:
+                error_msg = response.json().get('detail', response.text)
+            except Exception:
+                error_msg = f"Server Error ({response.status_code}): {response.text[:100]}"
+    
+            st.error(f"❌ Upload failed: {error_msg}")
             progress_bar.empty()
             return None
 

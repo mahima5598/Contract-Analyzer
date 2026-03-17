@@ -1,15 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Optional environment setup
-: "${LOG_DIR:=/app/logs}"
-mkdir -p "$LOG_DIR"
+# Create necessary directories if they don't exist
+mkdir -p /app/uploads /app/extracted /app/logs
 
-# Allow passing a command to run
-if [ $# -eq 0 ]; then
-  echo "No command supplied. Exiting."
-  exit 1
-fi
-
-# Exec the provided command so signals are forwarded correctly
+# Execute the command passed from docker-compose
 exec "$@"

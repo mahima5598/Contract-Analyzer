@@ -1,33 +1,23 @@
-version: "3.8"
 services:
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-
-  web:
-    build: .
-    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
     environment:
-      - REDIS_URL=redis://redis:6379/0
-      - LOG_LEVEL=info
-    depends_on:
-      - redis
-    volumes:
-      - .:/app
+      - OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    command: ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
 
-  worker:
-    build: .
-    command: >
-      celery -A backend.jobs.celery_app.celery_app worker
-      --loglevel=info --concurrency=2 --pool=threads
+  frontend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8501:8501"
     environment:
-      - REDIS_URL=redis://redis:6379/0
-      - LOG_LEVEL=info
+      - API_BASE=http://backend:8000
+    command: ["streamlit", "run", "frontend/streamlit_app/app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
     depends_on:
-      - redis
-    volumes:
-      - .:/app
+      - backend
