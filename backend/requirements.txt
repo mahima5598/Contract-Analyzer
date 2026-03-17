@@ -1,20 +1,43 @@
-# Use per-service requirements; this file is a convenience
+# Core
+numpy>=1.24,<2.0
+pandas>=2.0
+requests>=2.31
+tabulate
+
+# FastAPI + server
 fastapi
-uvicorn
-pdfplumber
-pymupdf
-camelot-py[cv]
+uvicorn>=0.22
+python-multipart
+pydantic-settings
+
+# PDF / OCR
+pdfplumber>=0.10.0
+camelot-py==0.11.0
 pytesseract
 pdf2image
-pandas
-python-multipart
-requests
-pydantic
-jsonschema
-streamlit
+pillow
+pymupdf==1.25.3
+
+# Retrieval / embeddings
+sentence-transformers
 faiss-cpu
+tiktoken>=0.5.2,<0.6.0
+
+# LLM orchestration & validation
+requests-toolbelt
+jsonschema
+
+# LLM & RAG
+langchain>=0.1.1
+langchain-core
+langchain-community
+langchain-text-splitters
+langchain-google-genai
+langchain_classic
+langchain-groq
+
+# Dev / tooling
+pipdeptree
+
+# Utilities
 python-dotenv
-langchain
-langchain-openai
-tiktoken
-pytest

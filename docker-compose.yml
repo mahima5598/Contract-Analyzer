@@ -1,33 +1,32 @@
-version: "3.9"
-
 services:
   backend:
     build:
-      context: ./backend
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
-    env_file:
-      - .env
-    volumes:
-      - uploads:/app/uploads
-      - extracted:/app/extracted
-    working_dir: /app
-    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
-    restart: unless-stopped
+    networks:
+      - contract-app-network
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    # Ensure it binds to 0.0.0.0 so Docker can route traffic to it
+    command: ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
   frontend:
-    image: python:3.10-slim
-    env_file:
-      - .env
-    volumes:
-      - ./frontend:/app
-      - uploads:/app/uploads:ro
-    working_dir: /app
-    command: streamlit run streamlit_app/app.py --server.port 8501 --server.headless true
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "8501:8501"
-    restart: unless-stopped
+    networks:
+      - contract-app-network
+    environment:
+      # CRITICAL: Use 'backend' (the service name), not 'localhost'
+      - API_BASE=http://backend:8000
+    command: ["streamlit", "run", "frontend/streamlit_app/app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
+    depends_on:
+      - backend
 
-volumes:
-  uploads:
-  extracted:
+networks:
+  contract-app-network:
+    driver: bridge
