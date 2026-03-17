@@ -46,6 +46,7 @@ with st.sidebar:
                     
                     if curr_status == "ready":
                         st.session_state["upload_status"] = "ready"
+                        st.session_state["page_count"] = resp.get("page_count", 0)  # ← NEW LINE
                         status.update(label="✅ Document Ready!", state="complete")
                         st.rerun()
                         break
