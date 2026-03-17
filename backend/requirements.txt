@@ -33,6 +33,8 @@ langchain-core
 langchain-community
 langchain-text-splitters
 langchain-google-genai
+langchain_classic
+langchain-groq
 
 # Dev / tooling
 pipdeptree

@@ -9,24 +9,22 @@ logger = logging.getLogger(__name__)
 
 class PDFExtractor:
     def __init__(self):
-        # Optimized for legal document tables
         self.table_settings = {
             "vertical_strategy": "lines",
             "horizontal_strategy": "lines",
             "snap_tolerance": 3,
         }
 
-    # ── Primary entry point (called by main.py) ──────────────────────────
     def extract(self, pdf_path: str) -> Dict[str, Any]:
         """
         Extract text and tables from every page of a PDF.
 
-        Returns a dict compatible with chunker.py and main.py:
+        Returns:
             {
-                "pages":      [{"page_number": int, "text": str}, ...],
-                "tables":     [{"page_number": int, "markdown": str}, ...],
-                "images_text": [],          # placeholder for OCR pipeline
-                "page_count": int,
+                "pages":       [{"page_number": int, "text": str}, ...],
+                "tables":      [{"page_number": int, "markdown": str}, ...],
+                "images_text": [],
+                "page_count":  int,
             }
         """
         pages: List[Dict[str, Any]] = []
@@ -34,16 +32,14 @@ class PDFExtractor:
 
         with pdfplumber.open(pdf_path) as pdf:
             for page in pdf.pages:
-                page_number = page.page_number  # 1-based in pdfplumber
+                page_number = page.page_number
 
-                # ── 1. Text ──────────────────────────────────────────
                 page_text = page.extract_text() or ""
                 pages.append({
                     "page_number": page_number,
                     "text": page_text,
                 })
 
-                # ── 2. Tables ────────────────────────────────────────
                 raw_tables = page.extract_tables(
                     table_settings=self.table_settings
                 )
@@ -60,18 +56,15 @@ class PDFExtractor:
                     except Exception as exc:
                         logger.warning(
                             "Skipping malformed table %d on page %d: %s",
-                            idx + 1,
-                            page_number,
-                            exc,
+                            idx + 1, page_number, exc,
                         )
 
         return {
             "pages": pages,
             "tables": tables,
-            "images_text": [],  # reserved for future OCR / pymupdf pipeline
+            "images_text": [],
             "page_count": len(pages),
         }
-
     # ── Helper: dict → single string (called by main.py) ─────────────────
     def get_full_text(self, extraction_result: Dict[str, Any]) -> str:
         """

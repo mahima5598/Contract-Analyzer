@@ -27,3 +27,4 @@ See `docs/architecture.md` for design rationale and run instructions.
 
 ## Contributing
 Open issues and PRs. Include tests for new features.
+

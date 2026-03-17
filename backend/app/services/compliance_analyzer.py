@@ -3,10 +3,10 @@ import json
 from datetime import datetime, timezone
 from typing import List, Dict
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_groq import ChatGroq                              # ← CHANGED
+from langchain_community.embeddings import HuggingFaceEmbeddings # ← stays local, no API key needed
 from langchain_community.vectorstores import FAISS
-from langchain.chains import RetrievalQA                        # ← FIXED
+from langchain_classic.chains.retrieval_qa.base import RetrievalQA
 from langchain_core.prompts import PromptTemplate
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -19,11 +19,16 @@ from backend.app.prompts.compliance_prompts import (
 
 
 class ComplianceAnalyzer:
-    def __init__(self, model_name: str = "gemini-1.5-flash", temperature: float = 0.1):
+    def __init__(self, model_name: str = "llama-3.1-8b-instant", temperature: float = 0.1):
         self.model_name = model_name
-        self.llm = ChatGoogleGenerativeAI(
+
+        api_key = os.getenv("GROQ_API_KEY", "")
+        if not api_key:
+            raise ValueError("GROQ_API_KEY is not set")
+
+        self.llm = ChatGroq(
             model=model_name,
-            google_api_key=os.getenv("GOOGLE_API_KEY"),
+            api_key=api_key,
             temperature=temperature,
         )
         self.embeddings = HuggingFaceEmbeddings(
